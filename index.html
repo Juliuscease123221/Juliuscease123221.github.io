@@ -6,349 +6,205 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Julius Sanchez</title>
 <meta name="description" content="Julius Sanchez is a computer science student at the University of Washington. He built Iroshine, which turns LeetCode solutions into videos, and Pyxis, a map of 56,129 Steam games.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-:root {
-  --bg: #141517; --bright: #eceef1; --body: #a4a8b1; --quiet: #71757e;
-  --accent: #f0a05f;                 /* the warm end of the sorting bars */
-  --card: rgba(255,255,255,.045); --line: rgba(255,255,255,.09);
-}
+:root { --bg: #0c0d0f; --text: #c5c9d1; --bright: #f5f6f8; --dim: #565a63; --quiet: #868b95; --accent: #f0a05f; }
 * { box-sizing: border-box; margin: 0; padding: 0; }
-html { scroll-behavior: smooth; }
-body {
-  background: var(--bg); color: var(--body);
-  font: 400 16px/1.65 "Schibsted Grotesk", "Helvetica Neue", Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
+body { background: var(--bg); color: var(--text); }
+/* The whole page is one grid of characters. Every glyph must be the same width,
+   so this uses fonts with full box-drawing and block coverage. */
+#screen {
+  font-family: "Cascadia Mono", "Cascadia Code", Consolas, Menlo, "DejaVu Sans Mono", "Liberation Mono", monospace;
+  font-variant-ligatures: none; line-height: 1.16; white-space: pre; width: max-content; margin: 0 auto; padding: 20px 12px 48px;
 }
-/* soft glow behind the top-left, in the bar colors */
-body::before { content: ""; position: fixed; inset: 0; pointer-events: none;
-  background: radial-gradient(700px 500px at 12% 0%, rgba(165,47,95,.16), transparent 70%),
-              radial-gradient(600px 420px at 0% 30%, rgba(240,160,95,.07), transparent 70%); }
-a { color: inherit; text-decoration: none; }
-:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 4px; }
-code { font-size: 14px; color: var(--bright); background: var(--card); padding: 1px 5px; border-radius: 4px; }
-
-.page { position: relative; max-width: 1180px; margin: 0 auto; padding: 0 48px; display: flex; gap: 64px; }
-
-/* Left column stays put while the right scrolls */
-.side { position: sticky; top: 0; height: 100vh; width: 40%; max-width: 400px; flex-shrink: 0;
-  display: flex; flex-direction: column; justify-content: space-between; padding: 88px 0; }
-h1 { font-size: 44px; font-weight: 700; line-height: 1.1; letter-spacing: -.03em; color: var(--bright); }
-.role { font-size: 18px; font-weight: 500; color: var(--bright); margin-top: 12px; }
-.intro { margin-top: 16px; max-width: 340px; }
-.sorter { margin-top: 32px; max-width: 340px; }
-canvas { display: block; width: 100%; height: 88px; }
-.sorter div { display: flex; justify-content: space-between; font-size: 13px; color: var(--quiet); margin-top: 8px; }
-.sorter button { font: inherit; color: var(--body); background: none; border: 0; cursor: pointer; }
-.sorter button:hover { color: var(--accent); }
-
-.menu { list-style: none; margin-top: 40px; }
-.menu a { display: flex; align-items: center; gap: 14px; padding: 7px 0; font-size: 14px; font-weight: 500; color: var(--quiet); transition: color .15s; }
-.menu a::before { content: ""; width: 28px; height: 1px; background: var(--quiet); transition: width .2s, background .2s; }
-.menu a:hover, .menu a.on { color: var(--bright); }
-.menu a:hover::before, .menu a.on::before { width: 56px; background: var(--bright); }
-
-.icons { display: flex; align-items: center; gap: 18px; list-style: none; }
-.icons a { display: block; opacity: .6; transition: opacity .15s, transform .15s; }
-.icons a:hover { opacity: 1; transform: translateY(-2px); }
-.icons img { display: block; width: 26px; height: 26px; filter: invert(1); }
-.icons svg { display: block; width: 27px; height: 27px; fill: none; stroke: var(--bright); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
-.icons .cv { opacity: 1; font-size: 14px; font-weight: 600; color: var(--bg); background: var(--bright); padding: 7px 14px; border-radius: 999px; }
-.icons .cv:hover { background: var(--accent); }
-
-/* Right column */
-main { flex: 1; min-width: 0; padding: 88px 0 96px; }
-section + section { margin-top: 88px; }
-section { scroll-margin-top: 88px; }
-h2 { font-size: 14px; font-weight: 600; color: var(--bright); margin: 0 0 16px 20px; }
-h2::after { content: ""; display: inline-block; width: 40px; height: 1px; background: var(--line); margin-left: 14px; vertical-align: middle; }
-
-.card { display: block; padding: 20px; border-radius: 12px; border: 1px solid transparent; transition: background .15s, border-color .15s, opacity .15s; }
-.card + .card { margin-top: 8px; }
-.list:hover .card:not(:hover) { opacity: .5; }
-.card:hover { background: var(--card); border-color: var(--line); }
-.card h3 { font-size: 17px; font-weight: 600; color: var(--bright); line-height: 1.35; display: flex; align-items: baseline; gap: 6px; }
-.card:hover h3 { color: var(--accent); }
-.go { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; transition: transform .15s; }
-.card:hover .go { transform: translate(3px,-3px); }
-.card p { margin-top: 8px; }
-.card .fact { color: var(--bright); font-weight: 500; }
-
-.card h3 a { display: inline-flex; align-items: baseline; gap: 6px; }
-.media { display: block; width: 100%; margin-top: 14px; border-radius: 10px; border: 1px solid var(--line); }
-.split { display: grid; grid-template-columns: 1fr 190px; gap: 24px; align-items: start; }
-.reel { position: relative; }
-.reel video { display: block; width: 100%; border-radius: 10px; }
-.sound { position: absolute; left: 8px; bottom: 8px; font: 600 12px/1 inherit; font-family: inherit; color: var(--bright);
-  background: rgba(20,21,23,.82); border: 0; border-radius: 999px; padding: 7px 11px; cursor: pointer; }
-.sound:hover { background: var(--bg); }
-.row { display: grid; grid-template-columns: 104px 1fr; gap: 16px; }
-.when { font-size: 13px; color: var(--quiet); padding-top: 4px; }
-
-.chips { display: flex; flex-wrap: wrap; gap: 6px; list-style: none; margin-top: 14px; }
-.chips li { font-size: 12.5px; font-weight: 500; line-height: 1; color: var(--accent); background: rgba(240,160,95,.1); padding: 6px 11px; border-radius: 999px; }
-
-.skills { padding: 0 20px; display: grid; grid-template-columns: 104px 1fr; gap: 14px 16px; align-items: start; }
-.skills dt { font-size: 13px; color: var(--quiet); padding-top: 5px; }
-.skills .chips { margin: 0; }
-
-.contact { padding: 0 20px; }
-.contact a { font-size: 22px; font-weight: 600; letter-spacing: -.02em; color: var(--bright); border-bottom: 1px solid var(--quiet); padding-bottom: 2px; transition: color .15s, border-color .15s; }
-.contact a:hover { color: var(--accent); border-color: var(--accent); }
-.contact p { margin-top: 14px; font-size: 14px; color: var(--quiet); }
-
-@media (max-width: 900px) {
-  .page { display: block; padding: 0 24px; }
-  .side { position: static; height: auto; width: auto; max-width: none; padding: 56px 0 0; display: block; }
-  h1 { font-size: 36px; }
-  .intro, .sorter { max-width: none; }
-  .menu { display: none; }
-  .icons { margin-top: 28px; }
-  main { padding: 64px 0 72px; }
-  section + section { margin-top: 64px; }
-  h2 { margin-left: 0; }
-  .card { padding: 16px 0; }
-  .card:hover { background: none; border-color: transparent; }
-  .list:hover .card:not(:hover) { opacity: 1; }
-  .split { grid-template-columns: 1fr; }
-  .reel { max-width: 260px; }
-  .row, .skills { grid-template-columns: 1fr; gap: 4px; }
-  .skills, .contact { padding: 0; }
-  .skills dt { margin-top: 12px; }
-}
-@media (prefers-reduced-motion: reduce) { * { transition: none !important; scroll-behavior: auto !important; } }
+.d { color: var(--dim); } .q { color: var(--quiet); } .b { color: var(--bright); font-weight: 700; } .t { color: var(--accent); font-weight: 700; }
+a { color: var(--accent); text-decoration: none; }
+a:hover, a:focus-visible { background: var(--accent); color: var(--bg); outline: none; }
+.cur { color: var(--accent); animation: blink 1.1s steps(1) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .cur { animation: none; } }
+noscript { display: block; max-width: 40em; margin: 2em auto; padding: 0 1em; font: 16px/1.6 monospace; white-space: normal; }
 </style>
 </head>
 <body>
-<div class="page">
-
-  <header class="side">
-    <div>
-      <h1>Julius Sanchez</h1>
-      <p class="role">Computer science student, University of Washington</p>
-      <!-- TODO (Julius): rewrite this in your own words -->
-      <p class="intro">I made a library that turns LeetCode solutions into videos and a map of 56,129 Steam games. I'm looking for a software engineering internship.</p>
-
-      <div class="sorter">
-        <canvas id="sort" aria-label="Animation of quicksort sorting a row of bars by height"></canvas>
-        <div><span>Quicksort, running live</span><button type="button" id="again">Sort again</button></div>
-      </div>
-
-      <ul class="menu">
-        <li><a href="#projects" class="on">Projects</a></li>
-        <li><a href="#experience">Experience</a></li>
-        <li><a href="#activities">Activities</a></li>
-        <li><a href="#skills">Skills</a></li>
-        <li><a href="#contact">Contact</a></li>
-      </ul>
-    </div>
-
-    <ul class="icons">
-      <li><a href="https://github.com/Juliuscease123221" aria-label="GitHub" title="GitHub"><img src="data:image/png;base64,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" alt=""></a></li>
-      <li><a href="mailto:Julius.Jin.Sanchez@gmail.com" aria-label="Email" title="Email"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M4 7.5l8 6 8-6"/></svg></a></li>
-      <!-- TODO (Julius): add LinkedIn here -->
-      <li><a class="cv" href="Julius_Sanchez_Resume.pdf">Resume</a></li>
-    </ul>
-  </header>
-
-  <main>
-    <section id="projects">
-      <h2>Projects</h2>
-      <div class="list">
-        <article class="card">
-          <div class="split">
-            <div>
-              <h3><a href="https://github.com/Juliuscease123221/Iroshine">Iroshine <svg class="go" viewBox="0 0 16 16" aria-hidden="true"><path d="M5 11l6-6M6 5h5v5"/></svg></a></h3>
-              <p>You paste in a LeetCode solution without changing it. Iroshine logs every list read, write, and swap, then replays the log as an animation with sound.</p>
-              <p>Values remember where they came from. A number read from <code>height[3]</code> keeps that origin, so its bar flies in from the right place.</p>
-              <p class="fact">50,000+ impressions on the videos</p>
-              <ul class="chips"><li>Python</li><li>Manim</li><li>NumPy</li></ul>
-            </div>
-            <div class="reel">
-              <video src="iroshine.mp4" poster="iroshine.jpg" autoplay muted loop playsinline aria-label="Iroshine video of the convex hull algorithm for LeetCode 587, Erect the Fence"></video>
-              <button type="button" class="sound" aria-pressed="false">Sound on</button>
-            </div>
-          </div>
-        </article>
-        <article class="card">
-          <h3><a href="https://github.com/Juliuscease123221/Pyxis">Pyxis <svg class="go" viewBox="0 0 16 16" aria-hidden="true"><path d="M5 11l6-6M6 5h5v5"/></svg></a></h3>
-          <video class="media" src="pyxis.mp4" poster="pyxis.jpg" autoplay muted loop playsinline aria-label="Zooming into the Pyxis map of Steam games"></video>
-          <p>A map of 56,129 Steam games where similar games sit near each other. Zoom in and the labels change from broad genres to specific niches.</p>
-          <p>My first test said one model beat another by 23 points. It was grading models on tags they had already seen. The real gap was under 3 points, so I rebuilt the test.</p>
-          <p class="fact">1,117 topic groups, first frame in 1.83 seconds</p>
-          <ul class="chips"><li>Python</li><li>UMAP</li><li>Leiden</li><li>WebGL</li></ul>
-        </article>
-      </div>
-    </section>
-
-    <section id="experience">
-      <h2>Experience</h2>
-      <div class="list">
-        <div class="card row">
-          <div class="when">2023 to 2024</div>
-          <div>
-            <h3>Software Engineering Intern, MeowTalk</h3>
-            <p>Built the audio labeling tool the team used for machine learning training data, then labeled 20,000+ files with it. Model accuracy went up 9%.</p>
-            <ul class="chips"><li>Python</li><li>FastAPI</li><li>React</li></ul>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section id="activities">
-      <h2>Activities</h2>
-      <div class="list">
-        <div class="card row">
-          <div class="when">2025 to now</div>
-          <div>
-            <h3>ICPC Club, University of Washington</h3>
-            <p>Competitive programming, mostly in Python.</p>
-          </div>
-        </div>
-        <div class="card row">
-          <div class="when">2023 to 2025</div>
-          <div>
-            <h3>Robotics Team Co-Captain</h3>
-            <p>Ran match strategy and scouting. We won our regional and qualified for the World Championship.</p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section id="skills">
-      <h2>Skills</h2>
-      <dl class="skills">
-        <dt>Languages</dt><dd><ul class="chips"><li>Python</li><li>Java</li><li>JavaScript</li><li>SQL</li><li>HTML/CSS</li></ul></dd>
-        <dt>Frameworks</dt><dd><ul class="chips"><li>FastAPI</li><li>React</li><li>NumPy</li><li>pandas</li><li>Manim</li><li>UMAP</li><li>WebGL</li></ul></dd>
-        <dt>Tools</dt><dd><ul class="chips"><li>Git</li><li>Docker</li><li>AWS</li><li>Linux</li></ul></dd>
-      </dl>
-    </section>
-
-    <section id="contact">
-      <h2>Contact</h2>
-      <div class="contact">
-        <a href="mailto:Julius.Jin.Sanchez@gmail.com">Julius.Jin.Sanchez@gmail.com</a>
-        <p>Seattle, Washington</p>
-      </div>
-    </section>
-  </main>
-
-</div>
+<main><div id="screen" aria-label="Julius Sanchez, personal site"></div></main>
+<noscript>
+  <h1>Julius Sanchez</h1>
+  <p>Computer science student at the University of Washington. I built Iroshine and Pyxis.</p>
+  <p><a href="Julius_Sanchez_Resume.pdf">Resume</a>, <a href="https://github.com/Juliuscease123221">GitHub</a>, <a href="mailto:Julius.Jin.Sanchez@gmail.com">Email</a></p>
+</noscript>
 
 <script>
 (function () {
-  var canvas = document.getElementById('sort'), ctx = canvas.getContext('2d');
-  var N = 64, vals = [], ops = [], hot = {}, timer = null;
-  var STAGE = '#141517';
+  var ART = {"b1":["     ██╗██╗   ██╗██╗     ██╗██╗   ██╗███████╗    ███████╗ █████╗ ███╗   ██╗ ██████╗██╗  ██╗███████╗███████╗","     ██║██║   ██║██║     ██║██║   ██║██╔════╝    ██╔════╝██╔══██╗████╗  ██║██╔════╝██║  ██║██╔════╝╚══███╔╝","     ██║██║   ██║██║     ██║██║   ██║███████╗    ███████╗███████║██╔██╗ ██║██║     ███████║█████╗    ███╔╝ ","██   ██║██║   ██║██║     ██║██║   ██║╚════██║    ╚════██║██╔══██║██║╚██╗██║██║     ██╔══██║██╔══╝   ███╔╝  ","╚█████╔╝╚██████╔╝███████╗██║╚██████╔╝███████║    ███████║██║  ██║██║ ╚████║╚██████╗██║  ██║███████╗███████╗"," ╚════╝  ╚═════╝ ╚══════╝╚═╝ ╚═════╝ ╚══════╝    ╚══════╝╚═╝  ╚═╝╚═╝  ╚═══╝ ╚═════╝╚═╝  ╚═╝╚══════╝╚══════╝"],"bA":["     ██╗██╗   ██╗██╗     ██╗██╗   ██╗███████╗","     ██║██║   ██║██║     ██║██║   ██║██╔════╝","     ██║██║   ██║██║     ██║██║   ██║███████╗","██   ██║██║   ██║██║     ██║██║   ██║╚════██║","╚█████╔╝╚██████╔╝███████╗██║╚██████╔╝███████║"," ╚════╝  ╚═════╝ ╚══════╝╚═╝ ╚═════╝ ╚══════╝"],"bB":["███████╗ █████╗ ███╗   ██╗ ██████╗██╗  ██╗███████╗███████╗","██╔════╝██╔══██╗████╗  ██║██╔════╝██║  ██║██╔════╝╚══███╔╝","███████╗███████║██╔██╗ ██║██║     ███████║█████╗    ███╔╝ ","╚════██║██╔══██║██║╚██╗██║██║     ██╔══██║██╔══╝   ███╔╝  ","███████║██║  ██║██║ ╚████║╚██████╗██║  ██║███████╗███████╗","╚══════╝╚═╝  ╚═╝╚═╝  ╚═══╝ ╚═════╝╚═╝  ╚═╝╚══════╝╚══════╝"],"mapL":[[["          ",null],[".","#d0d0f0"],["  ",null],[".","#d0d0f0"],["..","#d0f0f0"],["  ",null],[".","#d0d0f0"],[" ",null],["..","#d0f0f0"],[".","#d0d0f0"],[" ",null],[".","#d0d0f0"],["                    ",null],["+#:","#b0b0f0"],["                        ",null]],[["          ",null],[".:::","#d0f0f0"],[".:","#d0d0f0"],["::::","#d0f0f0"],[".","#d0d0f0"],[":::::","#d0f0f0"],[".","#d0d0f0"],["              ",null],[".","#f0d0d0"],["+*","#d0d0f0"],["#","#d0b0f0"],["#","#b0b0f0"],["*","#d0b0f0"],[".","#d0d0f0"],["          ",null],[".","#f0b0d0"],["             ",null]],[["                                         ",null],[".","#f0d090"],[":","#f0f0f0"],["*","#d0d0f0"],["#","#d0f0f0"],["*:.","#d0d0f0"],["    ",null],[".","#f0f0d0"],[" ",null],[".","#d0d0f0"],[":","#f0f0f0"],[" ",null],[":","#f0b0d0"],["              ",null]],[["                                    ",null],["::::::::*##**","#d0d0f0"],["####","#b0b0f0"],[":","#d0b0f0"],[".","#f0d0f0"],["+","#d0f0f0"],["                ",null]],[["                             ",null],[":","#f0d090"],[" ",null],[".","#d0f0f0"],[":","#d0d0f0"],[":::","#d0f0f0"],["+","#d0d0f0"],["++:","#d0f0f0"],[":","#d0d0f0"],[":","#d0f0f0"],["::+","#d0d0f0"],["+","#d0f0f0"],["+###*","#d0d0f0"],["*","#f0d0f0"],["#","#d0b0f0"],["##:","#b0b0f0"],["                ",null]],[["                            ",null],[".:#.","#f0d0b0"],[" ",null],[".","#f0d0d0"],["+:.","#f0d090"],[" ",null],["..","#d0d0f0"],["     ",null],["+*##","#d0d0f0"],["#*","#b0b0f0"],["+","#d0b0f0"],["#","#d0d0f0"],["##*","#b0b0f0"],[":","#d0d0f0"],["               ",null]],[["                              ",null],["*###","#f0d0b0"],["###","#f0d090"],["#","#f0d0b0"],["#","#f0f0d0"],["+","#d0f0f0"],[":","#d0d0f0"],[":","#d0f0f0"],["::","#d0d0f0"],["+","#d0f0f0"],["#","#b0f0f0"],["##","#d0f0f0"],["#","#f0d0b0"],["+","#f0f0d0"],["::","#d0d0f0"],["+","#b0b0f0"],["+","#b0d0f0"],["+","#d0d0f0"],["#","#d0b0f0"],["#","#f0b0f0"],["*","#f0b0d0"],["+","#f0d0d0"],[".","#f0d0f0"],["            ",null]],[["                      ",null],["..","#d0f0f0"],[".","#f0f0d0"],["+","#f0d0b0"],["#","#f0d090"],["*","#f0d0b0"],["::","#f0f0f0"],["*","#f0d0d0"],["#","#f0d0b0"],["#","#f0d0d0"],["######*","#f0d0b0"],[":*","#f0f0f0"],[":::","#d0f0f0"],["+#","#d0d0f0"],["#","#f0f0f0"],["#","#f0d0b0"],["*","#f0d0d0"],[":","#d0d0f0"],[":","#d0f0f0"],[":","#d0d0f0"],[":","#d0f0f0"],[":*","#d0d0f0"],["###","#f0d0f0"],[".","#d0d0f0"],["            ",null]],[["                      ",null],[".::","#d0f0f0"],["*","#f0f0d0"],["#","#f0f0f0"],["##","#f0f0d0"],["#","#d0f0d0"],["#","#d0d0f0"],["#","#f0f0d0"],["#","#f0d0d0"],["##++*","#f0f0d0"],["*","#f0f0f0"],[":","#f0d0d0"],[":","#f0f0f0"],["+::","#d0f0f0"],["+","#d0d0f0"],[".","#d0b0f0"],["+#","#f0d0d0"],["#","#d0d0f0"],["#","#f0f0f0"],[".","#d0d0f0"],["   ",null],[".","#d0d0f0"],["                 ",null]],[["                          ",null],[".","#d0d0f0"],[".","#f0f0f0"],["+","#b0d0f0"],["+:","#d0f0f0"],["#","#f0f0d0"],["#","#f0d0b0"],["*","#d0f0f0"],["*","#f0d0b0"],["+","#f0d0d0"],[":*","#f0f0d0"],["#","#f0d0d0"],["#","#f0f0b0"],["+","#d0f0f0"],["+","#d0d0f0"],["###+.","#b0b0f0"],["**","#d0d0f0"],["*","#d0f0f0"],[":","#f0d0f0"],["    ",null],[".","#d0d0f0"],["                ",null]],[["                  ",null],[".","#d0d0f0"],[".","#b0b0f0"],["   ",null],[".","#d0d0f0"],[" ",null],[":","#f0b0b0"],[":","#f0b0d0"],[".:","#d0f0f0"],[".:","#d0d0f0"],[":","#f0f0f0"],["+","#d0f0f0"],["#*","#d0f0d0"],["*","#d0f0f0"],[".","#f0d0d0"],["+","#d0f0f0"],["+#","#f0f0d0"],["*","#d0f0d0"],[".","#d0f0f0"],[":","#d0d0f0"],["*","#d0f0f0"],["+","#d0d0f0"],["  ",null],["::+","#d0d0f0"],[":+","#f0d0d0"],["                    ",null]],[["                ",null],[":+::::","#d0f0f0"],[":+","#d0d0f0"],["+","#f0d0f0"],["#","#f0b0d0"],["#","#f0f0f0"],["#","#b0f0f0"],["*","#d0f0f0"],["+","#f0f0f0"],["++","#d0f0f0"],["#","#d0f0d0"],["#*","#f0d0d0"],[".","#b0d0f0"],[".","#b0b0f0"],["  ",null],[".","#f0f0f0"],[":","#b0f0d0"],[":","#d0f0f0"],[":.","#d0d0f0"],[".","#f0f0f0"],[":","#f0b0d0"],[":","#f0d0d0"],["*","#d0d0f0"],[":","#d0b0f0"],[":","#f0d0f0"],["+#","#f0b0d0"],["#","#f0d0f0"],["+","#f0b0d0"],["                  ",null]],[["                  ",null],[".::+","#d0d0f0"],["#####","#b0b0f0"],["+..","#d0d0f0"],[":","#f0f0f0"],[":","#d0f0f0"],["++","#d0d0f0"],["  ",null],[":","#d0d0f0"],[":","#d0f0f0"],[":","#f0f0f0"],[".:","#d0f0f0"],[".","#d0d0f0"],[".","#d0f0f0"],[":","#d0d0f0"],["*","#f0d0f0"],["##","#f0b0d0"],["#","#f0d0f0"],["#","#d0b0f0"],["*","#f0d0f0"],["#####","#f0b0d0"],["+","#f0d0f0"],[":....","#d0d0f0"],[".","#d0f0f0"],[":.","#d0d0f0"],[".","#d0f0f0"],["       ",null]],[["          ",null],["+:","#b0f0f0"],["..","#d0f0f0"],["   ",null],[".","#d0d0f0"],["+","#f0d0f0"],["+","#d0d0f0"],["+*","#d0f0f0"],["#","#d0d0f0"],["#","#b0d0f0"],["#","#b0b0f0"],["#","#d0d0f0"],["#","#f0d0f0"],["##+","#d0d0f0"],["#","#f0d0d0"],["*","#f0f0f0"],["#+","#d0d0f0"],[":","#d0f0f0"],["::","#d0d0f0"],[":","#f0f0f0"],["+::","#d0f0f0"],["+","#d0d0f0"],["++","#d0f0f0"],["*","#f0d0f0"],["#","#f0d0d0"],["#","#f0b0d0"],["#","#f0d0f0"],["*+:","#d0d0f0"],[".","#d0f0f0"],["+","#d0d0f0"],["##+","#f0b0d0"],[":..:","#d0d0f0"],[".","#d0f0f0"],[".::","#d0d0f0"],[".","#d0f0f0"],["       ",null]],[["            ",null],[".:+","#d0f0f0"],[".","#d0d0f0"],[".","#d0f0f0"],[":","#f0f0f0"],["+","#f0d0b0"],[".","#d0d0f0"],["+:","#f0f0d0"],["#","#d0d0f0"],["#","#b0d0f0"],["##","#d0d0f0"],["#","#f0f0f0"],["*+","#d0d0f0"],["+","#d0f0f0"],["#","#b0f0f0"],["**","#d0f0f0"],[":","#f0d0d0"],["+","#f0b0b0"],["*","#f0d0f0"],["#","#f0b0d0"],["#","#f090b0"],["*","#f09090"],["*","#f090b0"],["*","#f0d0d0"],["*","#b0f0f0"],["#","#90f0f0"],["#","#b0f0f0"],["#","#f0d0d0"],["#","#f0b0b0"],["#","#f0b0d0"],["+","#f0d0f0"],[".:","#d0d0f0"],[".","#f0d0f0"],[":","#f0b0f0"],["+","#f090b0"],["*","#f0b0b0"],[":","#f0b0d0"],["                 ",null]],[["             ",null],["+","#b0f0d0"],["++","#b0f0f0"],[":","#d0f0f0"],[":","#d0d0f0"],[".","#f0f0f0"],["  ",null],[":","#d0f0f0"],["#","#f0f0f0"],["#","#b0b0f0"],["##*","#d0d0f0"],[":","#b0d0f0"],["+","#d0d0f0"],[":","#f0f0f0"],["+","#d0f0f0"],[":","#d0d0f0"],["+","#d0f0f0"],["*","#f0f0f0"],["#","#b0f0d0"],["##","#b0f0f0"],["#","#d0f0f0"],["#","#f0b0d0"],["#","#f0b0b0"],["#","#f0b0d0"],["#","#f0f0f0"],["#","#f0d0f0"],["+","#d0f0f0"],[":","#f0d0d0"],["*","#f0b0b0"],["#","#f0b0d0"],["::","#d0f0f0"],["*+","#f0d0d0"],["#","#f090b0"],["#","#f09090"],["#","#f09070"],[".","#f0b0d0"],["                 ",null]],[["              ",null],["*","#b0f0f0"],["#","#90f0d0"],["+.","#d0f0f0"],[".","#f0d0f0"],[".","#f0f0d0"],[":+*#","#d0d0f0"],["*","#f0f0f0"],["#**","#d0d0f0"],["*","#d0f0f0"],["###","#b0f0f0"],["#########","#d0f0f0"],["#","#f0f0f0"],["*","#f0d0d0"],["#","#d0f0f0"],["**","#f0f0d0"],["#","#f0d0b0"],["#","#f0f0f0"],["*#","#f0d0d0"],["#","#f0b0b0"],["#","#f0b090"],["###","#f09070"],[":","#f0b070"],["                ",null]],[["          ",null],[":","#f0b090"],[" ",null],[".","#d0f0f0"],["+","#d0d0f0"],["*","#d0f0f0"],["#","#b0f0f0"],["*","#d0f0d0"],["#","#d0f0f0"],["++++","#f0f0f0"],["#","#d0d0f0"],["##","#f0b0d0"],["#","#f0b0f0"],["+","#f0d0f0"],["+","#d0f0f0"],["+","#f0d0f0"],["+","#b0f0f0"],["##","#b0d0f0"],["#","#b0f0f0"],["#","#d0d0f0"],["#","#b0f0f0"],["#","#d0f0d0"],["##","#d0f0f0"],["#","#f0f0d0"],["#","#f0d0d0"],["#","#f0d0b0"],["#","#f0f0d0"],["#","#d0f0f0"],["#","#f0f0d0"],["*","#d0f0f0"],["*","#d0f0d0"],["##","#f0d090"],["+","#f0d0d0"],[".:","#f0d0b0"],["+:","#f0b0b0"],[":","#f0b070"],[":","#f09070"],["                 ",null]],[["            ",null],["+","#d0f0d0"],["#","#b0f0d0"],["#","#d0f0d0"],["###","#b0f0d0"],["*","#d0f0f0"],["#","#d0d0f0"],["#","#f0d0f0"],["##","#f0d0d0"],["##","#f0b0b0"],["*","#f0d0b0"],["+","#f0d0d0"],["..","#d0d0f0"],[" ",null],[":.","#d0d0f0"],[":","#b0d0f0"],["++:","#b0f0f0"],["*#","#90f0f0"],["#","#b0d0f0"],["#","#f0d0d0"],["#","#f0d0b0"],["#","#f0f0d0"],["*+++#","#f0f0f0"],["#","#f0f0d0"],["#*","#f0d0b0"],["*","#f0f0f0"],["#+:","#d0f0f0"],[":::++:","#d0d0f0"],[":","#d0f0f0"],[":+:","#d0d0f0"],["*+.","#d0f0f0"],["     ",null]],[["            ",null],[".","#f0f0f0"],["#","#f0f0d0"],["#","#f0f0f0"],["#","#d0f0f0"],["#","#f0d0d0"],["#","#f0b0d0"],["*#","#f0d0d0"],["#","#f0b0d0"],["#","#f090b0"],["##*","#f0b0b0"],[":","#f0f0f0"],[":","#f0d0f0"],["+","#f0f0f0"],["+","#d0f0d0"],["**","#f0d0b0"],["+","#f0d0d0"],[":","#f0f0f0"],["+","#d0d0f0"],["*","#b0b0f0"],["#","#b0d0f0"],["+++","#d0d0f0"],["*","#f0d0f0"],["+:*","#d0d0f0"],["++","#f0f0f0"],["+","#d0f0f0"],["+","#b0b0f0"],["#","#d0d0f0"],["#","#f0f0d0"],["#","#f0f0b0"],["#","#d0f0d0"],["#","#b0f0d0"],["*","#d0f0b0"],[".","#f0f0f0"],["        ",null],[":","#f090d0"],[".:","#f0b0d0"],["#","#f090b0"],[".","#f0d0f0"],["     ",null]],[["::","#d0d0f0"],[":","#d0f0f0"],["+:","#d0d0f0"],["+","#f0f0f0"],["*+","#f0d0d0"],[":+","#d0d0f0"],["+","#f0d0f0"],["#","#f0b0b0"],["##","#f0d0d0"],["#","#f0b0b0"],["#*","#f0d0d0"],["*#","#f0f0f0"],["#","#f0d0d0"],["##","#f0b0d0"],["##+","#f0b0b0"],[":","#f0d0d0"],[".","#d0d0f0"],["+","#b0f0f0"],["*","#d0f0f0"],["*","#f0d0b0"],["#","#d0f0d0"],["+","#f0f0d0"],[" ",null],[".","#d0f0f0"],["*#","#b0b0f0"],[".","#d0d0f0"],[" ",null],[":","#f0f0f0"],["#","#f0b0b0"],["#","#f0f0f0"],["#","#d0f0f0"],["*","#f0d0f0"],["#*","#f0d0d0"],["*","#f0d0f0"],["*","#d0d0f0"],["+","#d0f0f0"],["*","#f0f0d0"],["#","#d0f0f0"],["##","#d0f0d0"],["#","#d0f0f0"],["*+","#d0d0f0"],[":.","#d0f0f0"],["*+","#f0f0f0"],["+","#d0f0f0"],["+","#f0f0f0"],["*","#f0d0d0"],["###","#f0b0d0"],["+","#f0d0d0"],["      ",null]],[["       ",null],[":","#f0b0b0"],["*","#f0d0d0"],["#","#f0b0b0"],["####","#f0b090"],["#","#f0d0b0"],["*##*","#f0d0d0"],["#","#f0b0d0"],["######","#f0b0b0"],["##*","#f0d0d0"],["*","#f0d0f0"],["++","#f0f0f0"],["+","#d0d0f0"],["+::","#d0f0f0"],["+","#d0d0f0"],["+","#d0f0f0"],[":","#d0d0f0"],["#","#f0d0d0"],["#","#f0b0b0"],["#","#f0b0d0"],["###","#f0b0b0"],["#","#f0d0d0"],["*","#f0f0f0"],["*#","#b0f0d0"],["*.","#d0f0f0"],["  ",null],[".","#d0d0f0"],["+","#f0d0f0"],["#","#d0b0f0"],["*","#b0d0f0"],["*","#b0f0f0"],["*","#d0f0f0"],["#","#f0f0d0"],["*#","#f0b0b0"],["###","#f090b0"],[":","#f0b0d0"],["      ",null]],[[":","#d0d0f0"],["..","#d0f0f0"],[".","#d0d0f0"],[":.","#d0f0f0"],[":","#f0f0f0"],["++","#f0d0b0"],["##","#f0b090"],["#","#f0b070"],["#","#f09070"],["##","#f0b090"],["#*","#f0b0b0"],["+","#f0b0d0"],["*+","#f0d0d0"],["*","#f0b0b0"],["#","#f090b0"],["#####","#f09090"],["#","#f0b090"],["#*","#f0b0b0"],[":","#d0f0f0"],[".:","#f0d0d0"],[".","#f0f0f0"],["+","#f0b0b0"],["*","#f0f0f0"],["*","#f0d0f0"],["*","#d0f0f0"],["*","#f0f0f0"],["#","#d0f0f0"],["#","#d0f0d0"],["#","#d0f0f0"],["##","#d0f0d0"],["######+","#b0f0d0"],["+","#d0f0d0"],[":","#b0f0d0"],[":","#b0f0f0"],[".","#f0d0f0"],["*","#f0b0d0"],["##","#f0d0f0"],["#","#f0d0b0"],["#","#f0d090"],["*","#f0d0b0"],["*","#f0b0b0"],["*","#f090b0"],["::","#f0b0d0"],["       ",null]],[[":.:.:","#d0f0f0"],[".","#f0f0f0"],[":","#f0d0d0"],["####","#f0b070"],["#","#f0b090"],["#","#f0b070"],["+","#f0d0b0"],["::","#d0f0f0"],[".","#f0f0f0"],[":","#d0d0f0"],[":+::+","#f0f0f0"],["+","#f0d0d0"],["+*","#f09090"],["#","#f0b090"],["#","#f0b0b0"],["#","#f0d0b0"],["#+","#f0d0f0"],["*##","#d0d0f0"],["#","#f0d0d0"],["#","#f0b0b0"],["#","#f0d0f0"],["##","#d0d0f0"],["####","#b0f0d0"],["##","#b0f0b0"],["##","#90f0b0"],["#","#90f0d0"],["#","#b0f0f0"],[":::","#d0d0f0"],["   ",null],[".","#d0f0f0"],["+","#f0d0b0"],["###*","#f0d090"],["           ",null]],[["       ",null],["#","#f09070"],["###","#f09050"],["##","#f0b070"],["+","#f0d0f0"],[".","#d0f0f0"],[":","#f0d0f0"],[".","#d0d0f0"],[".:","#d0f0f0"],["++","#b0f0f0"],[".","#f0d0f0"],[".","#f0f0d0"],["   ",null],[".","#f0b0d0"],[":","#f0d0d0"],["+","#d0d0f0"],["+*","#f0f0f0"],["*","#f0f0d0"],["*+","#d0d0f0"],["#","#b0b0f0"],["#","#d0d0f0"],["*","#d0f0f0"],["#","#b0f0d0"],["*::","#d0f0f0"],["*","#d0f0d0"],["**","#b0f0d0"],["+","#d0f0f0"],[":","#b0f0d0"],[" ",null],[":+","#d0f0f0"],["#","#f0f0d0"],["*","#f0d0d0"],["#*","#f0f0d0"],[".","#f0f0f0"],[":","#f0d0f0"],[".","#f0f0f0"],[".","#f0f0d0"],[".","#f0d0d0"],["  ",null],[":","#f0d090"],["           ",null]],[["       ",null],["+","#f0b070"],["##","#f09050"],["#","#f09070"],["#","#f0b070"],["#","#f0d090"],[":","#d0d0f0"],[" ",null],["+:","#d0f0f0"],[":","#d0d0f0"],["+*:","#d0f0f0"],[":","#d0d0f0"],["++","#d0f0f0"],["::++","#d0d0f0"],["+","#f0f0f0"],["#","#b0f0d0"],["#","#d0f0d0"],["#","#f0f0d0"],["##","#d0f0f0"],["::","#d0d0f0"],["*","#f0d0f0"],["+","#d0d0f0"],["+","#d0f0f0"],[":+","#d0d0f0"],[":","#d0f0f0"],[":+:","#d0d0f0"],["   ",null],[".","#f0f0d0"],[":","#f0f0b0"],["+","#f0d0b0"],["+","#f0d0d0"],["                    ",null]],[["       ",null],[":","#f0b090"],["##","#f09070"],["#+","#f0b090"],[":","#f0d0f0"],[":","#f0d0d0"],[":","#d0d0f0"],[":","#d0f0f0"],["++*","#d0d0f0"],["#","#f0d0d0"],["+","#f0f0f0"],[":.:.:","#d0d0f0"],[" ",null],[".","#d0d0f0"],["::","#f0d0f0"],["+","#d0f0d0"],["*","#b0f0d0"],["+","#90f0d0"],[":","#d0f0f0"],["+","#b0d0f0"],["##","#d0f0f0"],[":","#b0f0f0"],[":..:.","#d0d0f0"],["*","#f0d0b0"],["*","#f0f0d0"],[".....","#d0d0f0"],["                      ",null]],[["       ",null],["*","#b0d0f0"],["#","#f0f0f0"],["#","#d0f0f0"],[".","#d0d0f0"],[" ",null],[":","#d0d0f0"],[":+","#d0f0f0"],["*","#d0d0f0"],["#","#f0d0d0"],["##","#d0d0f0"],["###*","#f0f0d0"],["+","#d0f0f0"],["::::","#d0d0f0"],["*","#d0f0f0"],["*","#f0b0d0"],["+","#d0d0f0"],["**","#b0d0f0"],["#","#b0b0f0"],["#+","#b0d0f0"],["..:.::","#d0d0f0"],["*","#f0d0d0"],["#","#f0d0b0"],["#","#f0d090"],["+","#f0d0d0"],[".:..","#d0d0f0"],["                      ",null]],[["       ",null],["+","#b0d0f0"],["#","#90d0f0"],["#","#b0d0f0"],["#","#f0b0f0"],[".","#f0d0f0"],["..","#d0d0f0"],[".","#f0d0f0"],[":","#f0b0b0"],[":","#d0f0f0"],["  ",null],[".","#f0f0d0"],[".:","#f0d090"],[".","#f0d0b0"],["     ",null],[".","#d0d0f0"],["*","#d0f0f0"],["*","#d0d0f0"],["#","#d0f0f0"],["#","#b0d0f0"],["+*","#d0f0f0"],["++","#d0d0f0"],["*","#f0f0f0"],[":.::","#d0d0f0"],["*","#d0f0d0"],["#","#f0d0b0"],["#","#f0d090"],["+","#f0d0b0"],["                          ",null]],[["         ",null],[":+","#b0d0f0"],["#","#b0b0f0"],["*","#d0d0f0"],[".","#f0d0f0"],["               ",null],[".","#f0b0d0"],[" ",null],[":","#f0d0f0"],["**","#b0f0f0"],["*","#d0f0f0"],["+","#d0d0f0"],["*","#b0b0f0"],["::.::","#d0d0f0"],[".","#f0f0f0"],["+","#f0d0b0"],[":","#f0f0f0"],[":","#d0d0f0"],["+","#d0f0f0"],["*","#d0f0d0"],["::::::::::::","#d0d0f0"],["            ",null]]],"mapS":[[["                         ",null],[":.","#b0b0f0"],["             ",null]],[["     ",null],[".","#d0d0f0"],[".....","#d0f0f0"],[".","#d0d0f0"],["...","#d0f0f0"],["        ",null],[":","#f0f0f0"],["*","#d0d0f0"],["#","#b0b0f0"],[".","#d0d0f0"],["    ",null],["..","#f0b0d0"],["       ",null]],[["                    ",null],["....","#d0d0f0"],["+","#d0f0f0"],["*+","#d0d0f0"],["*++","#b0b0f0"],["+","#d0d0f0"],["         ",null]],[["               ",null],[".+","#f0d0b0"],[":","#f0d0d0"],[":","#f0f0d0"],["+","#f0d0b0"],[":","#f0f0d0"],[":","#d0f0f0"],[".","#d0d0f0"],[".","#d0f0f0"],[":*","#d0d0f0"],["#","#d0f0f0"],["**","#d0d0f0"],["##","#b0b0f0"],[".","#d0b0f0"],["        ",null]],[["             ",null],[".","#f0f0d0"],[":","#f0d090"],[":","#f0d0b0"],[":","#f0f0f0"],["####","#f0d0b0"],["#","#f0d0d0"],["+:","#f0f0f0"],[":*","#d0f0f0"],["#","#f0f0f0"],["+","#f0d0d0"],["::*","#d0d0f0"],["#","#f0b0f0"],["*","#f0d0f0"],["       ",null]],[["            ",null],["..","#d0f0f0"],["+","#f0f0f0"],["*","#f0f0d0"],["*","#d0f0f0"],["#","#f0d0d0"],["#*+#","#f0f0d0"],["+","#f0f0f0"],["*","#d0d0f0"],["*:","#d0b0f0"],["#","#f0d0f0"],["*","#d0f0f0"],["  ",null],[".","#d0d0f0"],["         ",null]],[["          ",null],[".","#d0d0f0"],[" ",null],[".","#d0d0f0"],[".+","#f0b0d0"],["+","#b0f0f0"],[":","#d0d0f0"],[":","#f0f0f0"],["#","#d0f0d0"],["+","#d0f0f0"],[":","#f0f0f0"],["+","#f0f0d0"],["+","#d0f0d0"],[":+","#d0d0f0"],[" ",null],["+:","#d0d0f0"],["+","#f0b0d0"],[".","#f0d0d0"],["          ",null]],[["     ",null],[".","#b0f0f0"],["   ",null],["::+","#d0d0f0"],["#","#b0b0f0"],["##","#d0b0f0"],["+","#d0d0f0"],[":+","#f0f0f0"],["+.","#d0d0f0"],[":","#d0f0f0"],[":","#f0f0f0"],[":","#d0f0f0"],[":","#d0d0f0"],["+","#f0d0f0"],["#","#f0b0d0"],["#","#d0d0f0"],["*","#f0d0f0"],["##*","#f0b0d0"],[":.","#d0d0f0"],[":","#d0f0f0"],["::","#d0d0f0"],["    ",null]],[["     ",null],[".::","#b0f0f0"],[".:","#d0f0f0"],["+","#f0d0f0"],["+","#f0f0f0"],["###*","#d0d0f0"],["*","#d0f0f0"],["*","#d0d0f0"],["+","#f0d0d0"],["*","#f0f0d0"],["*","#f0b0d0"],["*","#f090b0"],["*","#f0d0d0"],["*","#b0f0f0"],["*","#d0d0f0"],["#","#f0b0b0"],["+","#f0d0f0"],[":","#d0d0f0"],[".","#f0b0d0"],["*","#f0b0b0"],[":","#f0b0d0"],["         ",null]],[["       ",null],[":","#b0f0d0"],["*","#b0f0f0"],[":","#d0f0f0"],[".","#f0f0f0"],[".*#*+","#d0d0f0"],["**","#b0f0f0"],["#","#d0f0f0"],["##","#b0f0f0"],["#","#f0f0f0"],["##","#f0d0d0"],["*","#f0f0f0"],["#","#f0d0d0"],["+","#f0f0f0"],["#","#f0d0d0"],["#","#f0b090"],["#+","#f09070"],["         ",null]],[["     ",null],[".","#f0b090"],[".","#d0f0f0"],["*","#d0f0d0"],["#","#b0f0d0"],["#","#d0f0d0"],["+","#d0f0f0"],["*","#f0d0f0"],["#","#f0d0d0"],["#","#f0b0b0"],["*","#f0d0d0"],[":","#f0d0f0"],[":","#d0f0f0"],["*","#b0d0f0"],["**#","#b0f0f0"],["#","#d0f0f0"],["#","#f0d0d0"],["#","#f0f0f0"],["**","#f0f0d0"],["#","#f0d0b0"],["++:","#f0d0d0"],[":","#f0d0b0"],[":","#d0d0f0"],["..","#d0f0f0"],[":","#d0d0f0"],["..","#d0f0f0"],["   ",null]],[[".:.","#d0d0f0"],[":","#f0f0f0"],["..","#d0d0f0"],[":","#f0d0d0"],["#","#f0f0d0"],["#","#d0f0f0"],["#","#f0d0d0"],["#","#f0d0f0"],["#","#f0b0d0"],["#*","#f0b0b0"],[":","#f0f0f0"],["+","#d0f0f0"],["*","#f0d0b0"],["+","#f0f0d0"],[":","#d0d0f0"],["#","#b0b0f0"],[":","#d0d0f0"],["+","#f0d0f0"],["*","#f0f0f0"],["+","#d0d0f0"],["+","#f0f0f0"],["+#","#d0d0f0"],["#","#f0f0d0"],["#+","#d0f0d0"],[".","#d0d0f0"],[".","#d0f0f0"],[":","#f0f0f0"],[".","#d0f0f0"],["+++","#f0b0d0"],["   ",null]],[["   ",null],[".","#f0b0b0"],[":","#f0d0b0"],["###","#f0b090"],["#","#f0d0b0"],["#","#f0d0d0"],["#","#f0b0d0"],["###","#f090b0"],["*","#f0b0b0"],["**","#f0d0d0"],["+","#d0f0f0"],[":+","#d0d0f0"],["+","#d0f0f0"],["+","#f0f0f0"],["###","#f0b0d0"],["*","#f0d0f0"],["**::","#d0f0f0"],["*","#f0d0f0"],["*","#b0d0f0"],["*","#d0f0f0"],["*","#f0d0d0"],["##","#f090b0"],[".","#f0b0d0"],["   ",null]],[[".:.","#d0f0f0"],[":","#f0d0d0"],["#","#f0b090"],["#","#f0b070"],["#*","#f0b090"],["+","#f0d0d0"],[":","#d0f0f0"],["+","#f0f0f0"],[":","#f0d0d0"],["*","#f0b0b0"],["*","#f09090"],["#","#f0b090"],["#","#f0b0b0"],["+","#f0d0f0"],["+*","#d0d0f0"],["#","#f0b0d0"],["#","#d0d0f0"],["#","#d0f0f0"],["#####*","#b0f0d0"],[":","#d0f0f0"],[".","#b0f0f0"],[".","#f0d0d0"],["#","#f0d0b0"],["#*","#f0d090"],[".","#f0b0d0"],["     ",null]],[["    ",null],["#","#f09070"],["#","#f09050"],["#","#f0b070"],["+","#f0d0d0"],["::++:.","#d0f0f0"],[":","#d0d0f0"],["+","#f0d0f0"],["*","#d0f0d0"],["#","#f0f0d0"],["*+","#d0d0f0"],["++:++","#d0f0f0"],[" ",null],[".","#d0d0f0"],["+","#f0f0d0"],["*","#f0d0d0"],[".","#f0f0d0"],[".","#f0d0f0"],["         ",null]],[["    ",null],["##","#f0b090"],[":","#f0d0b0"],[":","#f0f0f0"],["+*","#d0d0f0"],["#","#f0f0f0"],["*","#f0f0d0"],["+","#f0f0f0"],["::","#d0d0f0"],[":","#d0f0f0"],["+","#f0d0f0"],["*","#b0f0f0"],["+#","#b0d0f0"],["+","#d0f0f0"],[":.","#d0d0f0"],[":","#f0f0f0"],["*","#f0d0b0"],[":","#f0f0f0"],["..","#d0d0f0"],["            ",null]],[["    ",null],["+","#b0d0f0"],["#","#d0d0f0"],["+","#b0d0f0"],[".","#d0d0f0"],[".","#f0d0d0"],[".","#d0f0f0"],[".","#f0d0b0"],[":.","#f0d090"],["   ",null],["+","#d0d0f0"],["*","#d0f0f0"],["*","#b0d0f0"],["**::","#d0d0f0"],["+","#d0f0f0"],["*","#f0d0b0"],[":","#f0d0d0"],[":","#d0f0f0"],[".......","#d0d0f0"],["      ",null]]]};
+  var LINKS = {
+    resume: 'Julius_Sanchez_Resume.pdf', github: 'https://github.com/Juliuscease123221', email: 'mailto:Julius.Jin.Sanchez@gmail.com',
+    pyxis: 'https://github.com/Juliuscease123221/Pyxis', iroshine: 'https://github.com/Juliuscease123221/Iroshine'
+  };
+  var screen = document.getElementById('screen');
 
-  // Bar colors: a gradient blended in OKLab, so the steps look even to the eye.
-  var stops = ['#3a2a78', '#a52f5f', '#f08a4b', '#f6d57a'].map(toLab);
-  function toLab(hex) {
-    var c = [1, 3, 5].map(function (i) {
-      var v = parseInt(hex.substr(i, 2), 16) / 255;
-      return v <= .04045 ? v / 12.92 : Math.pow((v + .055) / 1.055, 2.4);
+  // ---- tiny text-layout engine: a line is a list of [text, class, href, color] ----
+  function esc(s) { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+  function len(line) { var n = 0; line.forEach(function (s) { n += s[0].length; }); return n; }
+  function rep(ch, n) { return n > 0 ? new Array(n + 1).join(ch) : ''; }
+  function pad(line, w) { var l = line.slice(); l.push([rep(' ', w - len(line))]); return l; }
+  function html(line) {
+    return line.map(function (s) {
+      var t = esc(s[0]);
+      if (s[2]) return '<a href="' + s[2] + '"' + (s[4] ? ' id="' + s[4] + '"' : '') + '>' + t + '</a>';
+      if (s[3]) return '<span style="color:' + s[3] + '">' + t + '</span>';
+      if (s[4]) return '<span id="' + s[4] + '">' + t + '</span>';
+      return s[1] ? '<span class="' + s[1] + '">' + t + '</span>' : t;
+    }).join('');
+  }
+  function wrap(text, w, cls) {
+    var out = [], cur = '';
+    text.split(' ').forEach(function (word) {
+      if (cur && (cur + ' ' + word).length > w) { out.push([[cur, cls]]); cur = word; } else cur = cur ? cur + ' ' + word : word;
     });
-    var l = Math.cbrt(.4122214708 * c[0] + .5363325363 * c[1] + .0514459929 * c[2]);
-    var m = Math.cbrt(.2119034982 * c[0] + .6806995451 * c[1] + .1073969566 * c[2]);
-    var s = Math.cbrt(.0883024619 * c[0] + .2817188376 * c[1] + .6299787005 * c[2]);
-    return [.2104542553 * l + .793617785 * m - .0040720468 * s,
-            1.9779984951 * l - 2.428592205 * m + .4505937099 * s,
-            .0259040371 * l + .7827717662 * m - .808675766 * s];
+    if (cur) out.push([[cur, cls]]);
+    return out;
   }
-  function toCss(L) {
-    var l = Math.pow(L[0] + .3963377774 * L[1] + .2158037573 * L[2], 3);
-    var m = Math.pow(L[0] - .1055613458 * L[1] - .0638541728 * L[2], 3);
-    var s = Math.pow(L[0] - .0894841775 * L[1] - 1.291485548 * L[2], 3);
-    var rgb = [4.0767416621 * l - 3.3077115913 * m + .2309699292 * s,
-               -1.2684380046 * l + 2.6097574011 * m - .3413193965 * s,
-               -.0041960863 * l - .7034186147 * m + 1.707614701 * s];
-    return 'rgb(' + rgb.map(function (v) {
-      v = v <= .0031308 ? 12.92 * v : 1.055 * Math.pow(v, 1 / 2.4) - .055;
-      return Math.round(Math.max(0, Math.min(1, v)) * 255);
-    }).join(',') + ')';
+  function box(title, w, lines) {
+    var out = [[['┌─ ', 'd'], [title, 't'], [' ' + rep('─', w - 5 - title.length) + '┐', 'd']]];
+    lines.forEach(function (l) { out.push([['│ ', 'd']].concat(pad(l, w - 4), [[' │', 'd']])); });
+    out.push([['└' + rep('─', w - 2) + '┘', 'd']]);
+    return out;
   }
-  var colors = [];
-  for (var i = 0; i < N; i++) {
-    var t = i / (N - 1) * (stops.length - 1), k = Math.min(Math.floor(t), stops.length - 2), f = t - k;
-    colors.push(toCss(stops[k].map(function (a, j) { return a + (stops[k + 1][j] - a) * f; })));
+  function hstack(a, wa, b, gap) {
+    var out = [], n = Math.max(a.length, b.length);
+    for (var i = 0; i < n; i++) out.push(pad(a[i] || [], wa).concat([[rep(' ', gap)]], b[i] || []));
+    return out;
+  }
+  var E = [['']];
+  function kv(k, v) { return [[(k + rep(' ', 9)).slice(0, 9), 'q'], [v, 'b']]; }
+  function tags(list) { return [[list.map(function (t) { return '[' + t + ']'; }).join(' '), 't']]; }
+  function link(label, href, id) { return ['[ ' + label + ' ]', null, href, null, id]; }
+  function cap(text, l, w) { return text.length + 1 + l[0].length <= w ? [[[text + ' ', 'q'], l]] : wrap(text, w, 'q').concat([[l]]); }
+  function stats(pairs, w) {
+    var one = [], many = [];
+    pairs.forEach(function (p, i) { if (i) one.push(['   ']); one.push([p[0], 'b'], [' ' + p[1], 'q']); many.push([[p[0], 'b'], [' ' + p[1], 'q']]); });
+    return len(one) <= w ? [one] : many;
   }
 
-  function shuffle() {
-    vals = []; for (var i = 0; i < N; i++) vals.push(i);
-    for (var j = N - 1; j > 0; j--) { var r = Math.floor(Math.random() * (j + 1)), t = vals[j]; vals[j] = vals[r]; vals[r] = t; }
+  // ---- content ----
+  function about(w) { return box('about', w, wrap("I built Iroshine, a library that turns LeetCode solutions into videos, and Pyxis, a map of 56,129 Steam games. I'm looking for a software engineering internship.", w - 4)); }
+  function facts(w) { return box('facts', w, [kv('school', 'Univ. of Washington'), kv('degree', 'B.S. Computer Science'), kv('class', '2028'), kv('gpa', '3.8'), kv('based', 'Seattle, WA')]); }
+  function experience(w) {
+    var i = w - 4;
+    return box('experience', w, [[['Software Engineering Intern', 'b']], [['MeowTalk, Seattle', 't'], ['  2023 to 2024', 'q']], E]
+      .concat(wrap('Built the audio labeling tool the team used for machine learning training data, then labeled 20,000+ files with it.', i), [E],
+        stats([['20,000+', 'audio files labeled'], ['9%', 'accuracy gain']], i), [E, tags(['python', 'fastapi', 'react'])]));
   }
-  // Record every compare and swap of a real quicksort, then replay them.
-  function record() {
-    var a = vals.slice(); ops = [];
+  function activities(w) {
+    var i = w - 4;
+    return box('activities', w, [[['ICPC Club', 'b'], ['  2025 to now', 'q']], [['University of Washington', 't']]]
+      .concat(wrap('Competitive programming, mostly in Python.', i), [E, [['Robotics Team Co-Captain', 'b']], [['2023 to 2025', 'q']]],
+        wrap('Ran match strategy and scouting. Won our regional and qualified for the World Championship.', i)));
+  }
+  function skills(w) {
+    var i = w - 4;
+    return box('skills', w, [[['languages', 'q']]].concat(wrap('Python, Java, JavaScript, SQL, HTML/CSS', i, 'b'), [E, [['frameworks', 'q']]],
+      wrap('FastAPI, React, NumPy, pandas, Manim, UMAP, WebGL', i, 'b'), [E, [['tools', 'q']]], wrap('Git, Docker, AWS, Linux', i, 'b')));
+  }
+  function contact(w) {
+    var mail = 'Julius.Jin.Sanchez@gmail.com';
+    return box('contact', w, [[[mail, null, LINKS.email]], E, [link('github', LINKS.github), ['  '], link('resume', LINKS.resume)]]);
+  }
+  function pyxis(w) {
+    var i = w - 4, map = i >= 72 ? ART.mapL : ART.mapS, mw = i >= 72 ? 72 : 40, ind = Math.floor((i - mw) / 2);
+    var lines = [[['A map of every game on Steam', 'q']], E];
+    map.forEach(function (runs) { lines.push([[rep(' ', ind)]].concat(runs.map(function (r) { return [r[0], null, null, r[1]]; }))); });
+    lines.push(E); lines = lines.concat(cap('The real map, redrawn in text.', link('watch the real one', 'pyxis.mp4'), i)); lines.push(E);
+    lines = lines.concat(wrap('56,129 Steam games placed so similar games sit near each other. Zoom in and the labels change from broad genres to specific niches.', i), [E],
+      wrap('My first test said one model beat another by 23 points. It was grading models on tags they had already seen. The real gap was under 3 points, so I rebuilt the test.', i), [E],
+      stats([['56,129', 'games'], ['1,117', 'topic groups'], ['1.83 s', 'to first frame']], i), [E, tags(['python', 'umap', 'leiden', 'webgl']), E, [link('code on github', LINKS.pyxis)]]);
+    return box('pyxis', w, lines);
+  }
+  var SORT_ROWS = 8, sortW = 0;
+  function iroshine(w) {
+    var i = w - 4; sortW = i;
+    var lines = [[['LeetCode solutions as videos', 'q']], E]
+      .concat(wrap('Paste in a solution unchanged. Iroshine logs every step the code takes and replays it as an animation with sound.', i), [E]);
+    for (var r = 0; r < SORT_ROWS; r++) lines.push([[rep(' ', i), null, null, null, 'sr' + r]]);
+    lines.push(E); lines = lines.concat(cap('A quicksort, drawn in text.', link('sort again', '#', 'again'), i), cap('The videos look better:', link('watch one', 'iroshine.mp4'), i)); lines.push(E);
+    lines = lines.concat(stats([['50K+', 'impressions'], ['12', 'problems animated']], i), [E, tags(['python', 'manim', 'numpy']), E, [link('code on github', LINKS.iroshine)]]);
+    return box('iroshine', w, lines);
+  }
+  var GRAD = ['#f6d57a', '#f5bd69', '#f2a058', '#e4764f', '#c9505a', '#a52f5f'];
+  function header(cols) {
+    var out = [], rows = cols >= 108 ? [ART.b1] : cols >= 60 ? [ART.bA, ART.bB] : null;
+    if (rows) rows.forEach(function (b) { b.forEach(function (l, i) { out.push([[l, null, null, GRAD[i]]]); }); });
+    else out.push([['JULIUS SANCHEZ', 'b']]);
+    out.push(E);
+    var sub = 'computer science at the university of washington';
+    out.push([[sub, 'b'], ['▌', 'cur']]);
+    out.push(E, [link('resume', LINKS.resume), ['  '], link('github', LINKS.github), ['  '], link('email', LINKS.email)], E);
+    return out;
+  }
+
+  // ---- fit the character grid to the window ----
+  function charRatio() {
+    var s = document.createElement('span'); s.style.cssText = 'position:absolute;visibility:hidden;font-size:100px;white-space:pre';
+    s.textContent = rep('0', 20); screen.appendChild(s); var r = s.getBoundingClientRect().width / 2000; screen.removeChild(s); return r || 0.6;
+  }
+  function render() {
+    var vw = document.documentElement.clientWidth, ratio = charRatio(), avail = vw - 24, cols, fs, lines;
+    if (vw >= 1100) { cols = 118; fs = Math.min(20, avail / cols / ratio); }
+    else if (vw >= 640) { cols = 80; fs = Math.min(17, avail / cols / ratio); }
+    else { fs = 12; cols = Math.max(38, Math.min(60, Math.floor(avail / (fs * ratio)))); }
+    screen.style.fontSize = fs + 'px';
+    lines = header(cols);
+    if (cols >= 118) {
+      var wl = 38, wr = 78;
+      var left = [].concat(about(wl), facts(wl), experience(wl), activities(wl), skills(wl), contact(wl));
+      var right = [].concat(pyxis(wr), iroshine(wr));
+      lines = lines.concat(hstack(left, wl, right, 2));
+    } else {
+      [about, facts, pyxis, iroshine, experience, activities, skills, contact].forEach(function (f) { lines = lines.concat(f(cols)); });
+    }
+    lines.push(E, [['© 2026 Julius Sanchez', 'd']]);
+    screen.innerHTML = lines.map(html).join('\n');
+    startSort();
+  }
+
+  // ---- quicksort drawn with block characters ----
+  var timer = null;
+  var BAR = ['#3a2a78', '#58307a', '#7a3176', '#9a306a', '#b53a62', '#c9505a', '#d96852', '#e67d4c', '#f0914c', '#f2a058', '#f4b062', '#f5bd69', '#f6c770', '#f6ce75', '#f6d57a', '#f8dd90'];
+  function startSort() {
+    if (timer) clearInterval(timer);
+    var n = sortW, max = SORT_ROWS * 2, vals = [], ops = [], hot = {};
+    if (!document.getElementById('sr0')) return;
+    for (var i = 0; i < n; i++) vals.push(1 + Math.floor(Math.random() * max));
+    var a = vals.slice();
     (function qs(lo, hi) {
       if (lo >= hi) return;
       var p = a[hi], i = lo;
-      for (var j = lo; j < hi; j++) {
-        ops.push([0, j, hi]);
-        if (a[j] < p) { if (i !== j) { var t = a[i]; a[i] = a[j]; a[j] = t; ops.push([1, i, j]); } i++; }
-      }
+      for (var j = lo; j < hi; j++) { ops.push([0, j, hi]); if (a[j] < p) { if (i !== j) { var t = a[i]; a[i] = a[j]; a[j] = t; ops.push([1, i, j]); } i++; } }
       if (i !== hi) { var u = a[i]; a[i] = a[hi]; a[hi] = u; ops.push([1, i, hi]); }
       qs(lo, i - 1); qs(i + 1, hi);
-    })(0, N - 1);
-  }
-  function draw() {
-    var dpr = window.devicePixelRatio || 1, w = canvas.clientWidth, h = canvas.clientHeight;
-    if (canvas.width !== Math.round(w * dpr)) { canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr); }
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    ctx.clearRect(0, 0, w, h);
-    var slot = w / N, bw = Math.max(1, slot * .78);
-    for (var i = 0; i < N; i++) {
-      var bh = (vals[i] + 1) / N * h;
-      ctx.fillStyle = hot[i] ? '#ffffff' : colors[vals[i]];
-      ctx.fillRect(i * slot + (slot - bw) / 2, h - bh, bw, bh);
+    })(0, n - 1);
+    function draw() {
+      for (var r = 0; r < SORT_ROWS; r++) {
+        var level = (SORT_ROWS - r) * 2, s = '';
+        for (var c = 0; c < n; c++) {
+          var v = vals[c], ch = v >= level ? '█' : v === level - 1 ? '▄' : ' ';
+          s += ch === ' ' ? ' ' : '<span style="color:' + (hot[c] ? '#fff' : BAR[v - 1]) + '">' + ch + '</span>';
+        }
+        document.getElementById('sr' + r).innerHTML = s;
+      }
     }
-  }
-  function step() {
-    hot = {};
-    for (var n = 0; n < 2 && ops.length; n++) {
-      var o = ops.shift();
-      if (o[0]) { var t = vals[o[1]]; vals[o[1]] = vals[o[2]]; vals[o[2]] = t; }
-      hot[o[1]] = hot[o[2]] = 1;
-    }
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { vals.sort(function (x, y) { return x - y; }); draw(); return; }
     draw();
-    if (ops.length) timer = requestAnimationFrame(step); else { hot = {}; draw(); timer = null; }
+    timer = setInterval(function () {
+      hot = {};
+      for (var k = 0; k < 3 && ops.length; k++) { var o = ops.shift(); if (o[0]) { var t = vals[o[1]]; vals[o[1]] = vals[o[2]]; vals[o[2]] = t; } hot[o[1]] = hot[o[2]] = 1; }
+      if (!ops.length) { hot = {}; clearInterval(timer); timer = null; }
+      draw();
+    }, 40);
   }
-  function run() { if (timer) cancelAnimationFrame(timer); shuffle(); record(); draw(); timer = requestAnimationFrame(step); }
-
-  document.getElementById('again').addEventListener('click', run);
-  window.addEventListener('resize', draw);
-  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    for (var i = 0; i < N; i++) vals.push(i); draw();   // show the sorted result, no motion
-  } else {
-    shuffle(); draw(); setTimeout(run, 500);
-  }
-})();
-</script>
-<script>
-// Highlight the section you're reading in the left-hand menu
-(function () {
-  var links = [].slice.call(document.querySelectorAll('.menu a'));
-  if (!('IntersectionObserver' in window) || !links.length) return;
-  var io = new IntersectionObserver(function (entries) {
-    entries.forEach(function (e) {
-      if (!e.isIntersecting) return;
-      links.forEach(function (l) { l.classList.toggle('on', l.getAttribute('href') === '#' + e.target.id); });
-    });
-  }, { rootMargin: '-30% 0px -60% 0px' });
-  document.querySelectorAll('main section').forEach(function (s) { io.observe(s); });
-})();
-</script>
-<script>
-// Iroshine videos have sound. It starts muted so the page can autoplay.
-(function () {
-  var b = document.querySelector('.sound'); if (!b) return;
-  var v = b.parentNode.querySelector('video');
-  b.addEventListener('click', function () {
-    v.muted = !v.muted; b.textContent = v.muted ? 'Sound on' : 'Sound off';
-    b.setAttribute('aria-pressed', String(!v.muted)); if (!v.muted) v.play();
-  });
+  screen.addEventListener('click', function (e) { if (e.target.id === 'again') { e.preventDefault(); startSort(); } });
+  var rt; window.addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(render, 150); });
+  render();
 })();
 </script>
 </body>
